@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 mod contexts;
 mod state;
 mod util;
+mod errors;
 
 use contexts::*;
 
@@ -69,5 +70,24 @@ pub mod aequor {
         initial_sqrt_price: u128,
     ) -> Result<()> {
         ctx.accounts.init(tick_spacing, initial_sqrt_price)
+    }
+
+    /// Initializes a new tick array for storing tick data in the pool.
+    /// 
+    /// # Arguments
+    /// * `start_tick_index` - The starting tick index for this array. Must be a multiple of TICK_ARRAY_SIZE (88).
+    ///                        For example: -88, 0, 88, 176, etc.
+    /// 
+    /// # Returns
+    /// * `Result<()>` - Returns Ok(()) if tick array initialization is successful
+    /// 
+    /// # Errors
+    /// * `InvalidStartTickIndex` - If the start_tick_index is not a multiple of TICK_ARRAY_SIZE
+    #[instruction(discriminator = 3)]
+    pub fn initialize_tick_array(
+        ctx: Context<InitializeTickArray>,
+        start_tick_index: i32,
+    ) -> Result<()> {
+        ctx.accounts.init(start_tick_index)
     }
 }

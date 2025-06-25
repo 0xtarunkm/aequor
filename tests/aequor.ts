@@ -7,7 +7,6 @@ import assert from 'assert';
 import { BN } from 'bn.js';
 
 describe('aequor', () => {
-  // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.aequor as Program<Aequor>;

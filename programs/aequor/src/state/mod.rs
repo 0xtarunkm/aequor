@@ -1,8 +1,9 @@
 pub mod config;
-pub use config::*;
-
-pub mod aequor;
-pub use aequor::*;
-
 pub mod fee_tier;
+pub mod aequor;
+pub mod tick;
+
+pub use config::*;
+pub use aequor::*;
 pub use fee_tier::*;
+pub use tick::*;
