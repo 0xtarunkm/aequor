@@ -37,6 +37,23 @@ pub mod aequor {
         )
     }
 
+    /// Initializes a new fee tier with the specified parameters.
+    /// 
+    /// # Arguments
+    /// * `tick_spacing` - The spacing between ticks for pools using this fee tier
+    /// * `default_fee_rate` - The default fee rate for pools using this fee tier (basis points)
+    /// 
+    /// # Returns
+    /// * `Result<()>` - Returns Ok(()) if fee tier initialization is successful
+    #[instruction(discriminator = 1)]
+    pub fn initialize_fee_tier(
+        ctx: Context<InitializeFeeTier>,
+        tick_spacing: u16,
+        default_fee_rate: u16,
+    ) -> Result<()> {
+        ctx.accounts.init(tick_spacing, default_fee_rate)
+    }
+
     /// Initializes a new Aequor liquidity pool with the specified parameters.
     /// 
     /// # Arguments
@@ -45,7 +62,7 @@ pub mod aequor {
     /// 
     /// # Returns
     /// * `Result<()>` - Returns Ok(()) if pool initialization is successful
-    #[instruction(discriminator = 1)]
+    #[instruction(discriminator = 2)]
     pub fn initialize_pool(
         ctx: Context<InitializeAequorPool>,
         tick_spacing: u16,
