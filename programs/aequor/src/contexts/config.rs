@@ -22,14 +22,11 @@ impl<'info> InitializeAequors<'info> {
         &mut self,
         fee_authority: Pubkey,
         collect_fee_authority: Pubkey,
-        reward_emissions_authority: Pubkey,
         protocol_fee_rate: u16,
-        bumps: &InitializeAequorsBumps,
     ) -> Result<()> {
         self.config.set_inner(AequorConfig {
             fee_authority,
             collect_fee_authority,
-            reward_emissions_authority,
             protocol_fee_rate,
         });
 

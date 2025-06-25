@@ -5,7 +5,6 @@ use anchor_lang::prelude::*;
 pub struct AequorConfig {
     pub fee_authority: Pubkey,
     pub collect_fee_authority: Pubkey,
-    pub reward_emissions_authority: Pubkey,
 
     pub protocol_fee_rate: u16,
 }
