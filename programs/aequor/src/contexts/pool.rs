@@ -21,30 +21,30 @@ pub struct InitializeAequorPool<'info> {
         mint::token_program = token_program
     )]
     pub mint_b: InterfaceAccount<'info, Mint>,
+    #[account(
+        init,
+        seeds = [b"lp", aequor.key().as_ref()],
+        payer = signer,
+        bump,
+        mint::decimals = 6,
+        mint::authority = aequor,
+        mint::token_program = token_program
+    )]
+    pub mint_lp: InterfaceAccount<'info, Mint>,
 
     #[account(
         init,
         payer = signer,
-        seeds = [
-            b"vault_a".as_ref(),
-            aequor.key().as_ref(),
-        ],
-        bump,
-        token::mint = mint_a,
-        token::authority = aequor
+        associated_token::mint = mint_a,
+        associated_token::authority = aequor
     )]
     pub vault_a: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         init,
         payer = signer,
-        seeds = [
-            b"vault_b".as_ref(),
-            aequor.key().as_ref(),
-        ],
-        bump,
-        token::mint = mint_b,
-        token::authority = aequor
+        associated_token::mint = mint_b,
+        associated_token::authority = aequor
     )]
     pub vault_b: InterfaceAccount<'info, TokenAccount>,
 
@@ -84,6 +84,7 @@ impl<'info> InitializeAequorPool<'info> {
     ) -> Result<()> {
         let mint_a = self.mint_a.key();
         let mint_b = self.mint_b.key();
+        let mint_lp = self.mint_lp.key();
 
         let fee_tier_index_seed = tick_spacing;
 
@@ -104,6 +105,7 @@ impl<'info> InitializeAequorPool<'info> {
             vault_a: self.vault_a.key(),
             fee_growth_global_a: 0,
             mint_b,
+            mint_lp,
             vault_b: self.vault_b.key(),
             fee_growth_global_b: 0,
             bump: bumps.aequor,

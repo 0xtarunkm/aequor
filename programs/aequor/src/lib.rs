@@ -89,26 +89,4 @@ pub mod aequor {
         ctx.accounts.init(start_tick_index)
     }
 
-    /// Opens a new position in the Aequor AMM
-    /// 
-    /// # Arguments
-    /// * `ctx` - The context containing all required accounts for position creation
-    /// * `tick_lower_index` - The lower tick index defining the position's price range
-    /// * `tick_upper_index` - The upper tick index defining the position's price range
-    /// 
-    /// This instruction:
-    /// 1. Creates a new position NFT mint
-    /// 2. Creates an associated token account for the position owner
-    /// 3. Initializes position state with the given tick range
-    /// 4. Mints exactly 1 position token
-    /// 5. Revokes mint authority to ensure position NFT uniqueness
-    #[instruction(discriminator = 4)]
-    pub fn open_position(
-        ctx: Context<OpenPosition>,
-        tick_lower_index: i32,
-        tick_upper_index: i32,
-    ) -> Result<()> {
-        ctx.accounts
-            .init(tick_lower_index, tick_upper_index, &ctx.bumps)
-    }
 }
