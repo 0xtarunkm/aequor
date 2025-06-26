@@ -80,6 +80,7 @@ impl<'info> InitializeAequorPool<'info> {
         &mut self,
         tick_spacing: u16,
         initial_sqrt_price: u128,
+        bumps: &InitializeAequorPoolBumps,
     ) -> Result<()> {
         let mint_a = self.mint_a.key();
         let mint_b = self.mint_b.key();
@@ -105,6 +106,7 @@ impl<'info> InitializeAequorPool<'info> {
             mint_b,
             vault_b: self.vault_b.key(),
             fee_growth_global_b: 0,
+            bump: bumps.aequor,
         });
 
         emit!(PoolInitialized {

@@ -20,11 +20,7 @@ pub struct InitializeFeeTier<'info> {
 }
 
 impl<'info> InitializeFeeTier<'info> {
-    pub fn init(
-        &mut self,
-        tick_spacing: u16,
-        default_fee_rate: u16,
-    ) -> Result<()> {
+    pub fn init(&mut self, tick_spacing: u16, default_fee_rate: u16) -> Result<()> {
         self.fee_tier.set_inner(FeeTier {
             aequors_config: self.aequors_config.key(),
             tick_spacing,
@@ -33,4 +29,4 @@ impl<'info> InitializeFeeTier<'info> {
 
         Ok(())
     }
-} 
+}

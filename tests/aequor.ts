@@ -2,7 +2,11 @@ import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { Aequor } from '../target/types/aequor';
 import { PublicKey } from '@solana/web3.js';
-import { createMint } from '@solana/spl-token';
+import {
+  createMint,
+  getAssociatedTokenAddress,
+  getMint,
+} from '@solana/spl-token';
 import assert from 'assert';
 import { BN } from 'bn.js';
 
@@ -16,11 +20,15 @@ describe('aequor', () => {
   let configPubkey: PublicKey;
   let feeTierKeypair: anchor.web3.Keypair;
 
+  let mintA: PublicKey;
+  let mintB: PublicKey;
+  let poolAequor: PublicKey;
+
   it('Initializes the protocol config', async () => {
     configKeypair = anchor.web3.Keypair.generate();
     const feeAuthority = provider.wallet.publicKey;
     const collectFeeAuthority = provider.wallet.publicKey;
-    const protocolFeeRate = 100; // 1% as an example
+    const protocolFeeRate = 100;
 
     const tx = await program.methods
       .initializeConfig(feeAuthority, collectFeeAuthority, protocolFeeRate)
@@ -47,7 +55,7 @@ describe('aequor', () => {
   it('Initializes a fee tier', async () => {
     feeTierKeypair = anchor.web3.Keypair.generate();
     const tickSpacing = 1;
-    const defaultFeeRate = 30; // 0.3% as default fee
+    const defaultFeeRate = 30;
 
     const tx = await program.methods
       .initializeFeeTier(tickSpacing, defaultFeeRate)
@@ -70,7 +78,7 @@ describe('aequor', () => {
   });
 
   it('Initializes a pool', async () => {
-    const mintA = await createMint(
+    mintA = await createMint(
       provider.connection,
       provider.wallet.payer,
       provider.wallet.publicKey,
@@ -80,7 +88,7 @@ describe('aequor', () => {
 
     console.log('mint a: ', mintA);
 
-    const mintB = await createMint(
+    mintB = await createMint(
       provider.connection,
       provider.wallet.payer,
       provider.wallet.publicKey,
@@ -145,5 +153,70 @@ describe('aequor', () => {
     assert.ok(poolAccount.mintB.equals(mintB));
     assert.equal(poolAccount.tickSpacing, tickSpacing);
     assert.equal(poolAccount.sqrtPrice.toString(), initialSqrtPrice.toString());
+
+    poolAequor = aequorPDA;
+  });
+
+  it('Opens a position', async () => {
+    const positionOwner = provider.wallet.publicKey;
+    const tickLowerIndex = -100;
+    const tickUpperIndex = 100;
+
+    const positionMintKeypair = anchor.web3.Keypair.generate();
+    console.log('Position mint:', positionMintKeypair.publicKey.toString());
+
+    const positionTokenAccount = await getAssociatedTokenAddress(
+      positionMintKeypair.publicKey,
+      positionOwner
+    );
+    console.log('Position token account:', positionTokenAccount.toString());
+
+    const [positionPDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from('position'), positionMintKeypair.publicKey.toBuffer()],
+      program.programId
+    );
+    console.log('Position PDA:', positionPDA.toString());
+
+    const tx = await (
+      program.methods.openPosition(tickLowerIndex, tickUpperIndex) as any
+    )
+      .accountsStrict({
+        signer: provider.wallet.publicKey,
+        positionMint: positionMintKeypair.publicKey,
+        positionTokenAccount: positionTokenAccount,
+        owner: positionOwner,
+        aequor: poolAequor,
+        position: positionPDA,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+        associatedTokenProgram: anchor.utils.token.ASSOCIATED_PROGRAM_ID,
+      })
+      .signers([positionMintKeypair])
+      .rpc();
+
+    console.log('Position opening transaction signature:', tx);
+
+    const positionAccount = await (program.account.position as any).fetch(
+      positionPDA
+    );
+    assert.ok(positionAccount.aequor.equals(poolAequor));
+    assert.ok(
+      positionAccount.positionMint.equals(positionMintKeypair.publicKey)
+    );
+    assert.equal(positionAccount.tickLowerIndex, tickLowerIndex);
+    assert.equal(positionAccount.tickUpperIndex, tickUpperIndex);
+    assert.equal(positionAccount.liquidity.toString(), '0');
+
+    const tokenBalance = await provider.connection.getTokenAccountBalance(
+      positionTokenAccount
+    );
+    assert.equal(tokenBalance.value.amount, '1');
+    assert.equal(tokenBalance.value.decimals, 0);
+
+    const mintInfo = await getMint(
+      provider.connection,
+      positionMintKeypair.publicKey
+    );
+    assert.equal(mintInfo.mintAuthority, null);
   });
 });

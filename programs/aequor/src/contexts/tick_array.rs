@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::{Aequor, TickArray, TICK_ARRAY_SIZE_USIZE};
 use crate::errors::AequorError;
+use crate::state::{Aequor, TickArray, TICK_ARRAY_SIZE_USIZE};
+use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 #[instruction(start_tick_index: i32)]
@@ -19,7 +19,7 @@ pub struct InitializeTickArray<'info> {
     )]
     pub tick_array: AccountLoader<'info, TickArray>,
 
-    pub system_program: Program<'info, System>
+    pub system_program: Program<'info, System>,
 }
 
 impl<'info> InitializeTickArray<'info> {
@@ -30,7 +30,7 @@ impl<'info> InitializeTickArray<'info> {
         );
 
         let mut tick_array = self.tick_array.load_init()?;
-        
+
         tick_array.aequor = self.aequor.key();
         tick_array.start_tick_index = start_tick_index;
         Ok(())

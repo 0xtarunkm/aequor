@@ -24,4 +24,6 @@ pub struct Aequor {
     pub mint_b: Pubkey,
     pub vault_b: Pubkey,
     pub fee_growth_global_b: u128,
+
+    pub bump: u8,
 }

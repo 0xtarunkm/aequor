@@ -20,5 +20,5 @@ pub struct Tick {
 pub struct TickArray {
     pub start_tick_index: i32,
     pub ticks: [Tick; TICK_ARRAY_SIZE_USIZE],
-    pub aequor: Pubkey
+    pub aequor: Pubkey,
 }

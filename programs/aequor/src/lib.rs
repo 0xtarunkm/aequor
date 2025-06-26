@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 
 mod contexts;
+mod errors;
 mod state;
 mod util;
-mod errors;
 
 use contexts::*;
 
@@ -31,19 +31,16 @@ pub mod aequor {
         collect_fee_authority: Pubkey,
         protocol_fee_rate: u16,
     ) -> Result<()> {
-        ctx.accounts.init(
-            fee_authority,
-            collect_fee_authority,
-            protocol_fee_rate
-        )
+        ctx.accounts
+            .init(fee_authority, collect_fee_authority, protocol_fee_rate)
     }
 
     /// Initializes a new fee tier with the specified parameters.
-    /// 
+    ///
     /// # Arguments
     /// * `tick_spacing` - The spacing between ticks for pools using this fee tier
     /// * `default_fee_rate` - The default fee rate for pools using this fee tier (basis points)
-    /// 
+    ///
     /// # Returns
     /// * `Result<()>` - Returns Ok(()) if fee tier initialization is successful
     #[instruction(discriminator = 1)]
@@ -56,11 +53,11 @@ pub mod aequor {
     }
 
     /// Initializes a new Aequor liquidity pool with the specified parameters.
-    /// 
+    ///
     /// # Arguments
     /// * `tick_spacing` - The spacing between ticks for this pool, determines price granularity
     /// * `initial_sqrt_price` - The initial square root price of the pool (Q64.64 fixed-point)
-    /// 
+    ///
     /// # Returns
     /// * `Result<()>` - Returns Ok(()) if pool initialization is successful
     #[instruction(discriminator = 2)]
@@ -69,18 +66,19 @@ pub mod aequor {
         tick_spacing: u16,
         initial_sqrt_price: u128,
     ) -> Result<()> {
-        ctx.accounts.init(tick_spacing, initial_sqrt_price)
+        ctx.accounts
+            .init(tick_spacing, initial_sqrt_price, &ctx.bumps)
     }
 
     /// Initializes a new tick array for storing tick data in the pool.
-    /// 
+    ///
     /// # Arguments
     /// * `start_tick_index` - The starting tick index for this array. Must be a multiple of TICK_ARRAY_SIZE (88).
     ///                        For example: -88, 0, 88, 176, etc.
-    /// 
+    ///
     /// # Returns
     /// * `Result<()>` - Returns Ok(()) if tick array initialization is successful
-    /// 
+    ///
     /// # Errors
     /// * `InvalidStartTickIndex` - If the start_tick_index is not a multiple of TICK_ARRAY_SIZE
     #[instruction(discriminator = 3)]
@@ -89,5 +87,28 @@ pub mod aequor {
         start_tick_index: i32,
     ) -> Result<()> {
         ctx.accounts.init(start_tick_index)
+    }
+
+    /// Opens a new position in the Aequor AMM
+    /// 
+    /// # Arguments
+    /// * `ctx` - The context containing all required accounts for position creation
+    /// * `tick_lower_index` - The lower tick index defining the position's price range
+    /// * `tick_upper_index` - The upper tick index defining the position's price range
+    /// 
+    /// This instruction:
+    /// 1. Creates a new position NFT mint
+    /// 2. Creates an associated token account for the position owner
+    /// 3. Initializes position state with the given tick range
+    /// 4. Mints exactly 1 position token
+    /// 5. Revokes mint authority to ensure position NFT uniqueness
+    #[instruction(discriminator = 4)]
+    pub fn open_position(
+        ctx: Context<OpenPosition>,
+        tick_lower_index: i32,
+        tick_upper_index: i32,
+    ) -> Result<()> {
+        ctx.accounts
+            .init(tick_lower_index, tick_upper_index, &ctx.bumps)
     }
 }
